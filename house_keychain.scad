@@ -31,7 +31,7 @@ knuckle_w = 6;      // width of each outer (body) knuckle
 
 /* [Split] */
 roof_split = 13.0;  // seam crosses the roof peak here (the phone leans on this edge)
-eave = 13.5;        // wall height; also sets how far out the phone lip sits
+eave = 16.5;        // wall height; also sets how far out the phone lip sits
 
 /* [Roof snap] */
 overlap = 3.0;      // how far the lid's roof edge laps over the body's roof
@@ -42,7 +42,7 @@ snap = 0.2;         // how far the bumps overlap the lid's edge; more = firmer
 bump_dx = 5;        // bump distance from the roof peak, on each slope
 
 /* [Phone] */
-phone_t = 9;        // phone thickness incl. case (ghost preview only)
+phone_t = 12;       // phone thickness incl. case (ghost preview only)
 
 /* [Features] */
 keyring_d = 2.2;
@@ -158,23 +158,18 @@ module body_knuckles() {
     }
 }
 
-module chimney() {
+// through-window with a cross muntin: ws square, bottom at wz, cut along X
+win_z = 6; win_s = 4;
+module window_cut() {
+    m = 0.8;
     difference() {
-        translate([17.5, 0, 14]) cube([5, 4.5, 24.2 - 14]);
-        prism(wall, D) inner2d();
-        translate([20, -1, 22.2]) rotate([-90, 0, 0]) cylinder(d = keyring_d, h = 7);
+        cube([wall + 2, win_s, win_s]);
+        translate([0, win_s / 2 - m / 2, 0]) cube([wall + 2, m, win_s]);
+        translate([0, 0, win_s / 2 - m / 2]) cube([wall + 2, win_s, m]);
     }
 }
 
-module side_window(x) {
-    // through-window with a cross muntin
-    wy = 5; wz = 6; ws = 4; m = 0.8;
-    translate([x - 1, wy, wz]) difference() {
-        cube([wall + 2, ws, ws]);
-        translate([0, ws / 2 - m / 2, 0]) cube([wall + 2, m, ws]);
-        translate([0, 0, ws / 2 - m / 2]) cube([wall + 2, ws, m]);
-    }
-}
+module side_window(x) { translate([x - 1, 5, win_z]) window_cut(); }
 
 module body() {
     difference() {
@@ -183,12 +178,21 @@ module body() {
             body_knuckles();
             roof_underlay();
             snap_bumps();
-            chimney();
         }
         pin_holes();
         side_window(0);
         side_window(W - wall);
+        back_details();
     }
+}
+
+// door and windows on the back wall, which is the house's face when closed;
+// windows go through and match the side windows, the door is debossed
+module back_details() {
+    translate([W / 2 - 2.5, 0.5 - 1, floor_t]) cube([5, 1, 7.5]);           // door
+    for (x = [2.8, W - 2.8 - win_s])                                         // windows
+        translate([x + win_s, -1, win_z]) rotate([0, 0, 90]) window_cut();
+    translate([W / 2, -1, eave + 4.2]) rotate([-90, 0, 0]) cylinder(r = 1.8, h = wall + 2); // attic window
 }
 
 // ---------- lid (front half) ----------
@@ -205,17 +209,17 @@ module lid_region() {
 // the knuckle overlaps the front wall, which runs down to the axis in this span
 module lid_knuckle() { along_axis(mid_x0, mid_x1, hinge_r); }
 
-module front_details() {
-    d = 0.5;  // deboss depth
-    translate([0, D - d, 0]) {
-        translate([W / 2 - 2.5, 0, lid_z0 + 0.3]) cube([5, 1, 7.5]);          // door
-        for (x = [2.6, W - 2.6 - 4.2]) translate([x, 0, 7]) difference() {  // windows
-            cube([4.2, 1, 3.8]);
-            translate([2.1 - 0.35, -1, 0]) cube([0.7, 3, 3.8]);
-            translate([0, -1, 1.9 - 0.35]) cube([4.2, 3, 0.7]);
-        }
+// chimney on the lid's roof, flush with the lid's front face (which lies on the
+// bed when printing); its straight back face sits just in front of the seam where
+// the chimney's low corner meets the roof. Carries the keyring hole.
+chim_x0 = 17.5; chim_w = 5; chim_top = H - 0.2; keyring_z = 23;
+chim_y0 = seam_y(H - (chim_x0 + chim_w - W / 2) * roof_k) + (gap + 0.1) / cos(lean);
+module chimney() {
+    difference() {
+        translate([chim_x0, chim_y0, eave]) cube([chim_w, D - chim_y0, chim_top - eave]);
+        prism(-1, D + 1) offset(delta = -e) pent2d();  // only above the roof; the lid roof is under it
+        translate([chim_x0 + chim_w / 2, -1, keyring_z]) rotate([-90, 0, 0]) cylinder(d = keyring_d, h = D + 2);
     }
-    translate([W / 2, D - d, eave + 4.2]) rotate([-90, 0, 0]) cylinder(r = 1.8, h = 1); // attic window
 }
 
 module lid() {
@@ -224,8 +228,8 @@ module lid() {
             intersection() { shell(); lid_region(); }
             lid_knuckle();
             lid_pin();
+            chimney();
         }
-        front_details();
         snap_bumps(bump_r + 0.1);  // dimples under the overlapping edge
     }
 }

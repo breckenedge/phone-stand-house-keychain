@@ -22,7 +22,8 @@ bumps.
 
 Fold the lid down flat. Set the phone's bottom edge on the open lid, just in
 front of the hinge. The phone leans back against the roof ridge at about 15°,
-and the lid's roof edge acts as a lip that stops it sliding forward.
+and the lid's roof edge acts as a lip that stops it sliding forward. Phones up
+to about 12 mm thick, case included, fit between the hinge and the lip.
 
 The stand is tiny, so **landscape is the stable orientation**. Portrait works
 with lighter phones, but it can tip backward.
@@ -38,3 +39,5 @@ with lighter phones, but it can tip backward.
   under the overlap. `bump_dx` sets how far the bumps sit from the peak.
 - `phone_t`: phone thickness in the ghost preview. When run, the `open` view echoes the lean angle and how much the lip catches.
 - `roof_split`: a higher value gives a more upright phone but a smaller lip.
+- `eave`: wall height. It also sets where the lip is: each extra 1 mm of eave fits about 1 mm
+  thicker phones, but the roof gets flatter. 16.5 fits about 12 mm.
