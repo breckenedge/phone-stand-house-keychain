@@ -2,7 +2,8 @@
 // A 1" x 1" x 0.75" house. The front half folds down on a hinge and becomes a
 // phone stand: the phone's bottom edge sits on the open lid just past the hinge,
 // leans on the roof ridge, and the lid's roof edge is the lip in front.
-// A flexible latch arm up in the roof peak snaps the lid shut.
+// The body/lid seam is one slanted line along the phone's lean. On the roof, the
+// lid's edge overlaps the body's roof like a shingle and snaps over two bumps.
 //
 // Coordinates: X = width, Y = depth (0 = back, D = front), Z = up.
 // Print-in-place hinge: the lid's middle knuckle carries a pin that runs into
@@ -29,15 +30,16 @@ gap = 0.25;         // seam between body and lid
 knuckle_w = 6;      // width of each outer (body) knuckle
 
 /* [Split] */
-roof_split = 13.0;  // body roof ends here (phone leans on this ridge edge)
+roof_split = 13.0;  // seam crosses the roof peak here (the phone leans on this edge)
 eave = 13.5;        // wall height; also sets how far out the phone lip sits
 
-/* [Snap latch] */
-snap = 0.3;         // how far the latch bump overlaps the catch; more = firmer
-arm_t = 0.9;        // flexing latch arm thickness; thinner = easier to open
-catch_t = 2.5;      // rigid catch block thickness on the lid
-latch_y = 9.5;      // bump position
-latch_z = 19.2;
+/* [Roof snap] */
+overlap = 3.0;      // how far the lid's roof edge laps over the body's roof
+lip_t = 0.8;        // thickness of the lid's overlapping edge
+fit = 0.1;          // gap under the overlapping edge
+under_t = 1.2;      // body roof thickness under the overlap (thickened inward)
+snap = 0.2;         // how far the bumps overlap the lid's edge; more = firmer
+bump_dx = 5;        // bump distance from the roof peak, on each slope
 
 /* [Phone] */
 phone_t = 9;        // phone thickness incl. case (ghost preview only)
@@ -60,13 +62,14 @@ pin_cap = 1.0;                       // closed outer end of each body knuckle
 // phone's back face: bottom edge just past the hinge knuckles, leaning on the ridge
 phone_by = ay + hinge_r + 0.5;
 lean = atan((phone_by - roof_split) / (H - wall));
-// latch: a flexing arm on the body (printed upright, so it bends along its layers)
-// snaps its bump into a dimple in a rigid catch block on the lid
-arm_x1 = W / 2;                      // arm's +x face, where the bump sits
-catch_x0 = arm_x1 + clr;
-latch_bot = latch_z - 1.7;
-latch_top = latch_z + 1.1;
-bump_r = clr + snap;
+// roof snap: bumps sit on the body's recessed roof surface, under the lid's edge
+roof_k = (H - eave) / (W / 2);       // roof slope
+roof_a = atan(roof_k);
+recess = lip_t + fit;                // depth of the body roof's recess
+bump_r = fit + snap;
+function seam_y(z) = phone_by - (z - wall) * tan(lean);
+function bump_pos(x) = let (z = H - abs(x - W / 2) * roof_k - recess / cos(roof_a))
+    [x, seam_y(z) - overlap / 2 / cos(lean), z];
 
 // ---------- basic shapes ----------
 
@@ -81,9 +84,6 @@ module inner2d() {
 
 // extrude a profile in the XZ plane between y0 and y1
 module prism(y0, y1) { translate([0, y1, 0]) rotate([90, 0, 0]) linear_extrude(y1 - y0) children(); }
-
-// extrude a profile in the YZ plane between x0 and x1
-module yz_prism(x0, x1) { translate([x0, 0, 0]) rotate([90, 0, 90]) linear_extrude(x1 - x0) children(); }
 
 module shell() {
     difference() {
@@ -109,25 +109,46 @@ module phone_side(off = 0) {
     translate([-1, phone_by, wall]) rotate([lean, 0, 0]) translate([0, -off, -50]) cube([W + 2, 40, 200]);
 }
 
-// the part of the side walls that must move with the lid so the phone clears them
-module side_wedges() {
-    intersection() {
-        phone_side(0.2 - gap);
-        union() for (x = [-1, lid_x1]) translate([x, 0, lid_z0]) cube([lid_x0 + 1, D + 1, eave + gap - lid_z0]);
+// outer skin of the roof above z0, `t` thick, between planes parallel to the seam
+module roof_skin(t, back, front, z0 = eave) {
+    difference() {
+        intersection() {
+            prism(0, D) difference() { pent2d(); offset(delta = -t) pent2d(); }
+            translate([-1, -1, z0]) cube([W + 2, D + 2, H]);
+        }
+        phone_side(-front);
+        difference() { translate([-1, -1, -1]) cube([W + 2, D + 2, H + 2]); phone_side(back); }
     }
 }
 
 // ---------- body (back half + floor) ----------
 
-// body keeps the back roof, full-depth side walls and the floor up to the hinge
-module body_region() {
-    translate([-1, -1, -1]) cube([W + 2, roof_split - gap / 2 + 1, H + 2]);
-    difference() {
-        translate([-1, -1, -1]) cube([W + 2, D + 2, eave - gap / 2 + 1]);
+// cut from the shell to leave the body: everything in front of the seam, the
+// front wall, the floor in front of the hinge, and the recess under the lid's
+// overlapping roof edge
+module body_cuts() {
+    union() {
+        phone_side(0);
         translate([lid_x0 - clr, D - wall - gap, -2]) cube([lid_x1 - lid_x0 + 2 * clr, 5, H]);
         translate([wall, floor_end, -2]) cube([W - 2 * wall, D, floor_t + 2 + e]);
-        phone_side(0.2);
+        roof_skin(recess, overlap + gap, 1);
     }
+}
+
+// thickens the body roof inward under the overlap so the recess isn't paper-thin
+module roof_underlay() {
+    difference() {
+        intersection() {
+            prism(0, D) difference() { offset(delta = -recess) pent2d(); offset(delta = -recess - under_t) pent2d(); }
+            translate([-1, -1, eave]) cube([W + 2, D + 2, H]);
+            phone_side(overlap + gap + 1);
+        }
+        phone_side(0);
+    }
+}
+
+module snap_bumps(r = bump_r) {
+    for (x = [W / 2 - bump_dx, W / 2 + bump_dx]) translate(bump_pos(x)) sphere(r = r, $fn = 24);
 }
 
 module body_knuckles() {
@@ -135,17 +156,6 @@ module body_knuckles() {
         along_axis(x[0], x[1], hinge_r);
         translate([x[0], floor_end - 1, 0]) cube([x[1] - x[0], ay - floor_end + 1, az]);
     }
-}
-
-// Latch arm: cantilevered forward from the back wall only (clear of the roof),
-// deep at the root and tapering to the bump. Its underside slopes at 45 degrees
-// so it prints without support.
-module latch_arm() {
-    tip_y = latch_y + 1.2;
-    yz_prism(arm_x1 - arm_t, arm_x1)
-        polygon([[wall - e, latch_bot - (tip_y - wall)], [tip_y, latch_bot],
-                 [tip_y, latch_top], [wall - e, latch_top]]);
-    translate([arm_x1, latch_y, latch_z]) sphere(r = bump_r, $fn = 24);
 }
 
 module chimney() {
@@ -169,9 +179,10 @@ module side_window(x) {
 module body() {
     difference() {
         union() {
-            intersection() { shell(); body_region(); }
+            difference() { shell(); body_cuts(); }
             body_knuckles();
-            latch_arm();
+            roof_underlay();
+            snap_bumps();
             chimney();
         }
         pin_holes();
@@ -182,27 +193,17 @@ module body() {
 
 // ---------- lid (front half) ----------
 
+// lid: everything in front of the seam (above the body knuckles), the front wall,
+// and the overlapping roof edge
 module lid_region() {
-    translate([-1, roof_split + gap / 2, eave + gap / 2]) cube([W + 2, D, H]);
+    intersection() { phone_side(-gap); translate([-1, -1, lid_z0]) cube([W + 2, D + 2, H]); }
     translate([lid_x0, D - wall - e, lid_z0]) cube([lid_x1 - lid_x0, wall + 1, H]);
     translate([mid_x0, D - wall - e, az]) cube([mid_x1 - mid_x0, wall + 1, H]);
-    side_wedges();
+    roof_skin(lip_t, overlap, gap + 1, eave + gap / 2);  // starts just above the eave so the phone clears it
 }
 
 // the knuckle overlaps the front wall, which runs down to the axis in this span
 module lid_knuckle() { along_axis(mid_x0, mid_x1, hinge_r); }
-
-// rigid block from the inside of the front wall, with the dimple the arm's bump
-// snaps into (with_dimple = false fills it, for interference checks)
-module latch_catch(with_dimple = true) {
-    difference() {
-        intersection() {
-            translate([catch_x0, latch_y - 1.2, latch_bot]) cube([catch_t, D - wall - latch_y + 1.2 + e, latch_top - latch_bot]);
-            prism(0, D) offset(delta = -1.5) inner2d();  // clears the body roof as it swings
-        }
-        if (with_dimple) translate([catch_x0, latch_y, latch_z]) sphere(r = bump_r + 0.1, $fn = 24);
-    }
-}
 
 module front_details() {
     d = 0.5;  // deboss depth
@@ -217,15 +218,15 @@ module front_details() {
     translate([W / 2, D - d, eave + 4.2]) rotate([-90, 0, 0]) cylinder(r = 1.8, h = 1); // attic window
 }
 
-module lid(with_dimple = true) {
+module lid() {
     difference() {
         union() {
             intersection() { shell(); lid_region(); }
             lid_knuckle();
             lid_pin();
-            latch_catch(with_dimple);
         }
         front_details();
+        snap_bumps(bump_r + 0.1);  // dimples under the overlapping edge
     }
 }
 
@@ -236,9 +237,11 @@ module lid_open() { translate([0, ay, az]) rotate([-90, 0, 0]) translate([0, -ay
 
 module phone_ghost(t = phone_t) {
     %translate([-20, phone_by, wall]) rotate([lean, 0, 0]) cube([W + 40, t, 70]);
+    // the stop is the lid's roof edge at the eave (overlap included), once folded open
     lip_y = ay + (eave + gap / 2 - az);
+    lip_top = az + ay - (seam_y(eave) - overlap / cos(lean));
     echo(str("lean ", lean, " deg; phone front corner y=", phone_by + t * cos(lean), " z=", wall + t * sin(lean),
-             "; lip at y=", lip_y, " top z=", az + ay - roof_split - gap / 2));
+             "; lip at y=", lip_y, " top z=", lip_top));
 }
 
 // ---------- output ----------

@@ -1,8 +1,9 @@
 # House Keychain Phone Stand
 
 A 1" × 1" × 0.75" (25.4 × 25.4 × 19 mm) house keychain. The front half swings
-down on a print-in-place hinge and turns into a phone stand. A latch in the
-roof peak snaps it shut.
+down on a print-in-place hinge and turns into a phone stand. The lid's roof
+edge overlaps the back half's roof like a shingle and snaps shut over two small
+bumps.
 
 ## Files
 
@@ -29,8 +30,11 @@ with lighter phones, but it can tip backward.
 ## Tuning
 
 - `pip_clr`: hinge gap. Raise to 0.35–0.4 if the hinge prints fused. Lower it if it's floppy.
-- `snap`: how firmly the lid clicks shut. `arm_t` sets how stiff the latch arm is.
-  The flexing arm is on the body, which prints upright, so it bends along its
-  layers rather than across them. The lid carries a rigid catch block.
+- `snap`: how firmly the lid clicks shut (how far the roof bumps overlap the lid's edge).
+  The part that flexes is the body's roof, which prints upright, so it bends
+  along its layers rather than across them.
+- `overlap`, `lip_t`, `fit`: how far the lid's roof edge laps over the body's roof,
+  how thick that edge is, and the gap under it. `under_t` thickens the body roof
+  under the overlap. `bump_dx` sets how far the bumps sit from the peak.
 - `phone_t`: phone thickness in the ghost preview. When run, the `open` view echoes the lean angle and how much the lip catches.
 - `roof_split`: a higher value gives a more upright phone but a smaller lip.
