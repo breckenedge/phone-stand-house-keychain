@@ -198,7 +198,6 @@ module back_details() {
     translate([W / 2 - 2.5, 0.5 - 1, floor_t]) cube([5, 1, 7.5]);           // door
     for (x = [2.8, W - 2.8 - win_s])                                         // windows
         translate([x + win_s, -1, win_z]) rotate([0, 0, 90]) window_cut();
-    translate([W / 2, -1, eave + 4.2]) rotate([-90, 0, 0]) cylinder(r = 1.8, h = wall + 2); // attic window
 }
 
 // ---------- lid (front half) ----------
