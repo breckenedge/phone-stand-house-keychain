@@ -41,6 +41,7 @@ under_t = 1.2;      // body roof thickness under the overlap (thickened inward)
 snap = 0.35;        // how far the bumps overlap the lid's edge; more = firmer
 bump_dx = 5;        // bump distance from the roof peak, on each slope
 snap_ridge = 4;     // bumps stretched into ridges this long (along the slope); 0 = round bumps
+snap_through = true; // slots cut right through the lid's edge (a blind slot leaves a skin too thin to print cleanly)
 
 /* [Phone] */
 phone_t = 12;       // thickest phone (incl. case) the stand fits; sets the eave height
@@ -200,6 +201,12 @@ module snap_bumps(r = bump_r) {
         translate(bump_pos(W / 2 + s * (bump_dx + d))) sphere(r = r, $fn = 24);
 }
 
+// the lid's slots: the ridges' shape pushed out along the roof's normal, through the edge
+module snap_slots(r = bump_r + 0.1) {
+    for (s = [-1, 1]) hull() for (d = [-snap_ridge / 2, snap_ridge / 2], t = [0, recess + 1])
+        translate(bump_pos(W / 2 + s * (bump_dx + d)) + t * [s * sin(roof_a), 0, cos(roof_a)]) sphere(r = r, $fn = 24);
+}
+
 module body_knuckles() {
     for (x = [[0, knuckle_w], [W - knuckle_w, W]]) {
         along_axis(x[0], x[1], hinge_r);
@@ -300,9 +307,12 @@ module lip_rib() {
 module lid() {
     difference() {
         union() {
-            intersection() {
-                envelope();
-                union() { intersection() { shell(); lid_region(); } lid_knuckle(); lid_pin(); if (rib) lip_rib(); }
+            difference() {
+                intersection() {
+                    envelope();
+                    union() { intersection() { shell(); lid_region(); } lid_knuckle(); lid_pin(); if (rib) lip_rib(); }
+                }
+                if (snap_through) snap_slots();  // not through the chimney, if it sits over one
             }
             chimney();
         }
