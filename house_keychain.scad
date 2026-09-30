@@ -20,6 +20,7 @@ H = 25.4;           // height to roof peak (1")
 D = 19.05;          // depth  (0.75")
 wall = 1.2;
 floor_t = 1.5;
+chamfer = 0.8;      // bevel on the outside edges so it doesn't snag in a pocket
 
 /* [Hinge] */
 hinge_r = 2.2;      // knuckle radius
@@ -90,6 +91,24 @@ module inner2d() {
 
 // extrude a profile in the XZ plane between y0 and y1
 module prism(y0, y1) { translate([0, y1, 0]) rotate([90, 0, 0]) linear_extrude(y1 - y0) children(); }
+
+// the house's outside with every edge chamfered; body and lid are clipped to it
+module pent_ch(i = 0) { offset(delta = chamfer - i, chamfer = true) offset(delta = -chamfer) pent2d(); }
+module envelope(i = 0) {  // i: inset
+    hull() {
+        prism(chamfer, D - chamfer) pent_ch(i);
+        prism(i, D - i) offset(delta = -chamfer) pent_ch(i);
+    }
+}
+
+// box with its top and vertical edges chamfered
+module chamfered_box(s, c) {
+    hull() {
+        translate([c, 0, 0]) cube([s.x - 2 * c, s.y, s.z - c]);
+        translate([0, c, 0]) cube([s.x, s.y - 2 * c, s.z - c]);
+        translate([c, c, 0]) cube([s.x - 2 * c, s.y - 2 * c, s.z]);
+    }
+}
 
 module shell() {
     difference() {
@@ -175,9 +194,13 @@ module window_cut() {
     }
 }
 
-module side_window(x) { translate([x - 1, 5, win_z]) window_cut(); }
+module side_window(x) { translate([x - 1, D / 2 - win_s / 2, win_z]) window_cut(); }  // centered on the closed house
 
 module body() {
+    intersection() { envelope(); body_raw(); }
+}
+
+module body_raw() {
     difference() {
         union() {
             difference() { shell(); body_cuts(); }
@@ -232,8 +255,9 @@ keyring_z = chim_top - chim_rim - keyring_d / 2;
 if (chim_top > H) echo(str("chimney top ", chim_top, " mm is above the 1\" roof peak"));
 module chimney() {
     difference() {
-        translate([chim_x0, chim_y0, eave]) cube([chim_w, D - chim_y0, chim_top - eave]);
-        prism(-1, D + 1) offset(delta = -e) pent2d();  // only above the roof; the lid roof is under it
+        translate([chim_x0, chim_y0, eave]) chamfered_box([chim_w, D - chim_y0, chim_top - eave], chamfer);
+        // only above the roof (the lid roof is under it); fills the roof's front chamfer below it
+        envelope(e);
         translate([chim_x0 - 1, D - chim_d / 2, keyring_z]) rotate([0, 90, 0]) cylinder(d = keyring_d, h = chim_w + 2);
     }
 }
@@ -241,9 +265,10 @@ module chimney() {
 module lid() {
     difference() {
         union() {
-            intersection() { shell(); lid_region(); }
-            lid_knuckle();
-            lid_pin();
+            intersection() {
+                envelope();
+                union() { intersection() { shell(); lid_region(); } lid_knuckle(); lid_pin(); }
+            }
             chimney();
         }
         snap_bumps(bump_r + 0.1);  // dimples under the overlapping edge
