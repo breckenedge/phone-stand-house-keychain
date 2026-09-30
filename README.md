@@ -37,7 +37,11 @@ with lighter phones, but it can tip backward.
 - `overlap`, `lip_t`, `fit`: how far the lid's roof edge laps over the body's roof,
   how thick that edge is, and the gap under it. `under_t` thickens the body roof
   under the overlap. `bump_dx` sets how far the bumps sit from the peak.
-- `phone_t`: phone thickness in the ghost preview. When run, the `open` view echoes the lean angle and how much the lip catches.
+- `phone_t`: the thickest phone, case included, that the stand fits (12 mm by default). The eave
+  height is calculated from it: thicker phones mean higher walls and a flatter roof. Anything over
+  about 16 mm is rejected with an error. When run, the `open` view echoes the lean angle and where the lip is.
 - `roof_split`: a higher value gives a more upright phone but a smaller lip.
-- `eave`: wall height. It also sets where the lip is: each extra 1 mm of eave fits about 1 mm
-  thicker phones, but the roof gets flatter. 16.5 fits about 12 mm.
+- `keyring_d`: keyring hole size, up to about 5 mm. The hole runs sideways through the top of the
+  chimney, so the ring loops over the chimney when closed and lies flat past the end of the lid
+  when it's open. The chimney gets deeper and taller to fit bigger holes, and rises above the 1"
+  peak from about 3 mm up. `chim_rim` sets the material around the hole.

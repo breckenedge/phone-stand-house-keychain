@@ -31,7 +31,6 @@ knuckle_w = 6;      // width of each outer (body) knuckle
 
 /* [Split] */
 roof_split = 13.0;  // seam crosses the roof peak here (the phone leans on this edge)
-eave = 16.5;        // wall height; also sets how far out the phone lip sits
 
 /* [Roof snap] */
 overlap = 3.0;      // how far the lid's roof edge laps over the body's roof
@@ -42,10 +41,12 @@ snap = 0.2;         // how far the bumps overlap the lid's edge; more = firmer
 bump_dx = 5;        // bump distance from the roof peak, on each slope
 
 /* [Phone] */
-phone_t = 12;       // phone thickness incl. case (ghost preview only)
+phone_t = 12;       // thickest phone (incl. case) the stand fits; sets the eave height
+phone_fit = 0.1;    // extra room between that phone and the lip
 
 /* [Features] */
-keyring_d = 2.2;
+keyring_d = 2.2;    // keyring hole; the chimney grows (deeper, taller) to fit it
+chim_rim = 0.8;     // chimney material around the keyring hole and above the roof
 
 /* [Hidden] */
 $fn = 40;
@@ -62,6 +63,11 @@ pin_cap = 1.0;                       // closed outer end of each body knuckle
 // phone's back face: bottom edge just past the hinge knuckles, leaning on the ridge
 phone_by = ay + hinge_r + 0.5;
 lean = atan((phone_by - roof_split) / (H - wall));
+// wall height: puts the lip (the lid's roof edge at the eave, once open) just past
+// the front of a phone_t phone
+eave = phone_by + phone_t * cos(lean) + phone_fit - ay + az - gap / 2;
+assert(eave < H - 5, str("phone_t too thick: eave ", eave, " leaves too little roof"));
+echo(str("eave ", eave, ", roof pitch ", atan((H - eave) / (W / 2)), " deg"));
 // roof snap: bumps sit on the body's recessed roof surface, under the lid's edge
 roof_k = (H - eave) / (W / 2);       // roof slope
 roof_a = atan(roof_k);
@@ -210,15 +216,26 @@ module lid_region() {
 module lid_knuckle() { along_axis(mid_x0, mid_x1, hinge_r); }
 
 // chimney on the lid's roof, flush with the lid's front face (which lies on the
-// bed when printing); its straight back face sits just in front of the seam where
-// the chimney's low corner meets the roof. Carries the keyring hole.
-chim_x0 = 17.5; chim_w = 5; chim_top = H - 0.2; keyring_z = 23;
-chim_y0 = seam_y(H - (chim_x0 + chim_w - W / 2) * roof_k) + (gap + 0.1) / cos(lean);
+// bed when printing). Its straight back face may reach back over the lid's
+// overlapping roof edge, which is lid too. The keyring hole runs sideways (X)
+// through the top, so the ring loops over the top when closed and lies flat past
+// the end of the lid when the lid is folded open.
+chim_x1 = 23.4;                                  // outer (low) side of the chimney
+chim_w = 5;
+chim_x0 = chim_x1 - chim_w;
+chim_d = max(4, keyring_d + 2 * chim_rim);       // front-to-back depth
+chim_y0 = D - chim_d;
+assert(chim_y0 >= seam_y(H - (chim_x1 - W / 2) * roof_k) - (overlap - 0.5) / cos(lean),
+       "keyring_d too big: the chimney would reach past the lid's overlapping roof edge");
+// hole clears the roof on the chimney's uphill side, where the ring passes
+chim_top = max(H - 0.2, H - max(0, chim_x0 - W / 2) * roof_k + keyring_d + 2 * chim_rim);
+keyring_z = chim_top - chim_rim - keyring_d / 2;
+if (chim_top > H) echo(str("chimney top ", chim_top, " mm is above the 1\" roof peak"));
 module chimney() {
     difference() {
         translate([chim_x0, chim_y0, eave]) cube([chim_w, D - chim_y0, chim_top - eave]);
         prism(-1, D + 1) offset(delta = -e) pent2d();  // only above the roof; the lid roof is under it
-        translate([chim_x0 + chim_w / 2, -1, keyring_z]) rotate([-90, 0, 0]) cylinder(d = keyring_d, h = D + 2);
+        translate([chim_x0 - 1, D - chim_d / 2, keyring_z]) rotate([0, 90, 0]) cylinder(d = keyring_d, h = chim_w + 2);
     }
 }
 
