@@ -47,7 +47,8 @@ phone_fit = 0.1;    // extra room between that phone and the lip
 
 /* [Features] */
 keyring_d = 4;      // keyring hole; the chimney grows (deeper, taller) to fit it
-chim_rim = 0.8;     // chimney material around the keyring hole and above the roof
+chim_rim = 0.8;     // chimney material beside the keyring hole and between it and the roof
+chim_cap = 1.6;     // chimney material above the keyring hole
 
 /* [Hidden] */
 $fn = 40;
@@ -250,8 +251,8 @@ chim_y0 = D - chim_d;
 assert(chim_y0 >= seam_y(H - (chim_x1 - W / 2) * roof_k) - (overlap - 0.5) / cos(lean),
        "keyring_d too big: the chimney would reach past the lid's overlapping roof edge");
 // hole clears the roof on the chimney's uphill side, where the ring passes
-chim_top = max(H - 0.2, H - max(0, chim_x0 - W / 2) * roof_k + keyring_d + 2 * chim_rim);
-keyring_z = chim_top - chim_rim - keyring_d / 2;
+chim_top = max(H - 0.2, H - max(0, chim_x0 - W / 2) * roof_k + keyring_d + chim_rim + chim_cap);
+keyring_z = chim_top - chim_cap - keyring_d / 2;
 if (chim_top > H) echo(str("chimney top ", chim_top, " mm is above the 1\" roof peak"));
 module chimney() {
     difference() {

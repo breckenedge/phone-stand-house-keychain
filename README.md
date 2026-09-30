@@ -44,5 +44,5 @@ with lighter phones, but it can tip backward.
 - `keyring_d`: keyring hole size, 4 mm by default and up to about 5 mm. The hole runs sideways through the top of the
   chimney, so the ring loops over the chimney when closed and lies flat past the end of the lid
   when it's open. The chimney gets deeper and taller to fit bigger holes, and rises above the 1"
-  peak from about 3 mm up. `chim_rim` sets the material around the hole.
+  peak from about 3 mm up. `chim_rim` sets the material around the hole and `chim_cap` the material above it.
 - `chamfer`: bevel on all the outside edges (0.8 mm) so it doesn't snag in a pocket.
