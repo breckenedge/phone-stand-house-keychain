@@ -14,8 +14,9 @@ bumps.
 
 - Print `house_keychain_print.stl` as exported: body upright and lid flat, joined only by the hinge.
 - No supports needed.
-- 0.4 mm nozzle, 0.12 mm layers or finer.
-- In the slicer preview, check that the 0.3 mm hinge gaps show up as gaps and aren't filled in.
+- PETG (tougher and more heat-resistant than PLA, which matters for a keychain). 0.4 mm nozzle, 0.12 mm layers or finer.
+- Use a textured plate or glue stick: PETG can bond too well to smooth PEI.
+- In the slicer preview, check that the 0.35 mm hinge gaps show up as gaps and aren't filled in.
 - After printing, work the hinge back and forth a few times to free it. Then fold the lid up until it clicks.
 
 ## Using it as a stand
@@ -30,8 +31,8 @@ with lighter phones, but it can tip backward.
 
 ## Tuning
 
-- `pip_clr`: hinge gap. Raise to 0.35–0.4 if the hinge prints fused. Lower it if it's floppy.
-- `snap`: how firmly the lid clicks shut (how far the roof bumps overlap the lid's edge).
+- `pip_clr`: hinge gap, 0.35 mm for PETG. Raise to 0.4 if the hinge prints fused. Lower it (0.3 suits PLA) if it's floppy.
+- `snap`: how firmly the lid clicks shut (how far the roof bumps overlap the lid's edge). PETG is less stiff than PLA, so try 0.35 if the click feels soft.
   The part that flexes is the body's roof, which prints upright, so it bends
   along its layers rather than across them.
 - `overlap`, `lip_t`, `fit`: how far the lid's roof edge laps over the body's roof,

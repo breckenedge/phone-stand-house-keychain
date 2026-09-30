@@ -25,7 +25,7 @@ chamfer = 0.8;      // bevel on the outside edges so it doesn't snag in a pocket
 /* [Hinge] */
 hinge_r = 2.2;      // knuckle radius
 pin_r = 1.0;        // print-in-place pin radius
-pip_clr = 0.3;      // pin-to-hole and knuckle-to-knuckle gap; raise if it prints fused
+pip_clr = 0.35;     // pin-to-hole and knuckle-to-knuckle gap; raise if it prints fused
 clr = 0.3;          // moving clearance elsewhere
 gap = 0.25;         // seam between body and lid
 knuckle_w = 6;      // width of each outer (body) knuckle
