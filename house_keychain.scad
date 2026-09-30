@@ -195,7 +195,7 @@ module body() {
 // door and windows on the back wall, which is the house's face when closed;
 // windows go through and match the side windows, the door is debossed
 module back_details() {
-    translate([W / 2 - 2.5, 0.5 - 1, floor_t]) cube([5, 1, 7.5]);           // door
+    translate([W / 2 - 2.5, 0.5 - 1, floor_t]) cube([5, 1, 10]);            // door
     for (x = [2.8, W - 2.8 - win_s])                                         // windows
         translate([x + win_s, -1, win_z]) rotate([0, 0, 90]) window_cut();
 }
