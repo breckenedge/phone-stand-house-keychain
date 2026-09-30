@@ -58,6 +58,7 @@ floors = 1;         // rows of windows
 floor_h = 12;       // spacing between the rows
 
 /* [Features] */
+details = false;    // door and windows
 keyring_d = 3;      // keyring hole; the chimney grows (deeper, taller) to fit it
 chim_rim = 0.8;     // chimney material beside the keyring hole and between it and the roof
 chim_cap = 1.6;     // chimney material above the keyring hole
@@ -255,9 +256,7 @@ module body_raw() {
             snap_bumps();
         }
         pin_holes();
-        side_window(0);
-        side_window(W - wall);
-        back_details();
+        if (details) { side_window(0); side_window(W - wall); back_details(); }
     }
 }
 

@@ -71,3 +71,4 @@ stable too.
   when it's open. The chimney gets deeper and taller to fit bigger holes, and rises above the 1"
   peak from about 3 mm up. `chim_rim` sets the material around the hole and `chim_cap` the material above it.
 - `chamfer`: bevel on all the outside edges (0.8 mm) so it doesn't snag in a pocket.
+- `details`: door and windows. Off by default for the house; the hotel turns them on.
