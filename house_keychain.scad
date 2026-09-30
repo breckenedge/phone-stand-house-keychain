@@ -38,7 +38,7 @@ overlap = 3.0;      // how far the lid's roof edge laps over the body's roof
 lip_t = 0.8;        // thickness of the lid's overlapping edge
 fit = 0.1;          // gap under the overlapping edge
 under_t = 1.2;      // body roof thickness under the overlap (thickened inward)
-snap = 0.3;         // how far the bumps overlap the lid's edge; more = firmer
+snap = 0.35;        // how far the bumps overlap the lid's edge; more = firmer
 bump_dx = 5;        // bump distance from the roof peak, on each slope
 
 /* [Phone] */

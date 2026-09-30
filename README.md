@@ -32,7 +32,7 @@ with lighter phones, but it can tip backward.
 ## Tuning
 
 - `pip_clr`: hinge gap, 0.35 mm for PETG. Raise to 0.4 if the hinge prints fused. Lower it (0.3 suits PLA) if it's floppy.
-- `snap`: how firmly the lid clicks shut (how far the roof bumps overlap the lid's edge). PETG is less stiff than PLA, so try 0.35 if the click feels soft.
+- `snap`: how firmly the lid clicks shut (how far the roof bumps overlap the lid's edge). 0.35 mm for PETG. Use 0.3 for PLA: it gives a good click in PLA but was too soft in PETG.
   The part that flexes is the body's roof, which prints upright, so it bends
   along its layers rather than across them.
 - `overlap`, `lip_t`, `fit`: how far the lid's roof edge laps over the body's roof,
