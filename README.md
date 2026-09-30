@@ -10,6 +10,9 @@ bumps.
 - `house_keychain.scad`: the model. Set `part` to `closed`, `open`, `print`, `body`, or `lid`.
 - `house_keychain_print.stl`: the whole keychain as one print, with the lid folded open.
 
+- `hotel_keychain.scad`: the hotel, a 1" × 2.5" × 0.75" version (see below). It includes the house model and only changes a few values.
+- `hotel_keychain_print.stl`: the hotel as one print, with the lid folded open.
+
 ## Printing
 
 - Print `house_keychain_print.stl` as exported: body upright and lid flat, joined only by the hinge.
@@ -28,6 +31,19 @@ to about 12 mm thick, case included, fit between the hinge and the lip.
 
 The stand is tiny, so **landscape is the stable orientation**. Portrait works
 with lighter phones, but it can tip backward.
+
+## The hotel
+
+The hotel is 2.5" (63.5 mm) tall with the same footprint, hinge and roof snap.
+Its whole front wall folds down into a 2.5" base. The phone's bottom edge sits
+out on that base against a rib and leans back on the roof ridge at 20°. Because
+the phone stands well forward of the hotel and is held 2.5" up, portrait is
+stable too.
+
+- `phone_lean`: the lean angle (20°). It sets how far out on the base the phone sits. 0 gives the house layout.
+- `lip_h`: rib height (6 mm). The rib sits just past the front of a `phone_t` phone and folds away inside the closed hotel.
+- `roof_h`: eave-to-peak height (9 mm).
+- `floors`, `floor_h`: rows of windows and their spacing.
 
 ## Tuning
 

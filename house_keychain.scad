@@ -46,6 +46,15 @@ snap_ridge = 4;     // bumps stretched into ridges this long (along the slope); 
 phone_t = 12;       // thickest phone (incl. case) the stand fits; sets the eave height
 phone_fit = 0.1;    // extra room between that phone and the lip
 
+/* [Hotel] */
+// These turn the house into the tall hotel (see hotel_keychain.scad).
+phone_lean = 0;     // phone's lean in degrees; its bottom edge then sits out on the open lid against a rib. 0 = house
+roof_h = 9;         // eave-to-peak height when phone_lean is set (the house's eave comes from phone_t)
+lip_h = 6;          // how far the rib stands up from the open lid
+lip_w = 1.2;        // rib thickness at its top edge
+floors = 1;         // rows of windows
+floor_h = 12;       // spacing between the rows
+
 /* [Features] */
 keyring_d = 3;      // keyring hole; the chimney grows (deeper, taller) to fit it
 chim_rim = 0.8;     // chimney material beside the keyring hole and between it and the roof
@@ -64,11 +73,13 @@ mid_x0 = knuckle_w + pip_clr;        // lid knuckle span
 mid_x1 = W - knuckle_w - pip_clr;
 pin_cap = 1.0;                       // closed outer end of each body knuckle
 // phone's back face: bottom edge just past the hinge knuckles, leaning on the ridge
-phone_by = ay + hinge_r + 0.5;
+// (hotel: further out on the open lid, wherever phone_lean puts it)
+rib = phone_lean > 0;
+phone_by = rib ? roof_split + (H - wall) * tan(phone_lean) : ay + hinge_r + 0.5;
 lean = atan((phone_by - roof_split) / (H - wall));
 // wall height: puts the lip (the lid's roof edge at the eave, once open) just past
-// the front of a phone_t phone
-eave = phone_by + phone_t * cos(lean) + phone_fit - ay + az - gap / 2;
+// the front of a phone_t phone (hotel: the rib is the lip, so the eave is free)
+eave = rib ? H - roof_h : phone_by + phone_t * cos(lean) + phone_fit - ay + az - gap / 2;
 assert(eave < H - 5, str("phone_t too thick: eave ", eave, " leaves too little roof"));
 echo(str("eave ", eave, ", roof pitch ", atan((H - eave) / (W / 2)), " deg"));
 // roof snap: bumps sit on the body's recessed roof surface, under the lid's edge
@@ -77,6 +88,14 @@ roof_a = atan(roof_k);
 recess = lip_t + fit;                // depth of the body roof's recess
 bump_r = fit + snap;
 assert(bump_dx - snap_ridge / 2 > 1, "snap_ridge too long: the ridges would cross the roof peak");
+// hotel's rib: its phone-side face, as a height on the closed lid's front wall
+rib_z = az + phone_by + phone_t * cos(lean) + phone_fit - ay;
+rib_base = lip_w + lip_h / 2;        // thickness at the root
+if (rib) {
+    assert(rib_z + rib_base < eave, "phone_lean too steep: the rib would land on the lid's roof");
+    assert(lip_h > phone_t * sin(lean) + 1, "lip_h too low to catch the phone's front corner");
+    assert(lip_h < D - 2 * wall - 1, "lip_h too tall to fit inside the closed hotel");
+}
 function seam_y(z) = phone_by - (z - wall) * tan(lean);
 function bump_pos(x) = let (z = H - abs(x - W / 2) * roof_k - recess / cos(roof_a))
     [x, seam_y(z) - overlap / 2 / cos(lean), z];
@@ -199,7 +218,9 @@ module window_cut() {
     }
 }
 
-module side_window(x) { translate([x - 1, D / 2 - win_s / 2, win_z]) window_cut(); }  // centered on the closed house
+module side_window(x) {  // centered on the closed house
+    for (f = [0 : floors - 1]) translate([x - 1, D / 2 - win_s / 2, win_z + f * floor_h]) window_cut();
+}
 
 module body() {
     intersection() { envelope(); body_raw(); }
@@ -224,8 +245,8 @@ module body_raw() {
 // windows go through and match the side windows, the door is debossed
 module back_details() {
     translate([W / 2 - 2.5, 0.5 - 1, floor_t]) cube([5, 1, 10]);            // door
-    for (x = [2.8, W - 2.8 - win_s])                                         // windows
-        translate([x + win_s, -1, win_z]) rotate([0, 0, 90]) window_cut();
+    for (f = [0 : floors - 1], x = concat([2.8, W - 2.8 - win_s], f > 0 ? [W / 2 - win_s / 2] : []))  // windows (one more over the door)
+        translate([x + win_s, -1, win_z + f * floor_h]) rotate([0, 0, 90]) window_cut();
 }
 
 // ---------- lid (front half) ----------
@@ -257,7 +278,7 @@ assert(chim_y0 >= seam_y(H - (chim_x1 - W / 2) * roof_k) - (overlap - 0.5) / cos
 // hole clears the roof on the chimney's uphill side, where the ring passes
 chim_top = max(H - 0.2, H - max(0, chim_x0 - W / 2) * roof_k + keyring_d + chim_rim + chim_cap);
 keyring_z = chim_top - chim_cap - keyring_d / 2;
-if (chim_top > H) echo(str("chimney top ", chim_top, " mm is above the 1\" roof peak"));
+if (chim_top > H) echo(str("chimney top ", chim_top, " mm is above the roof peak"));
 module chimney() {
     difference() {
         translate([chim_x0, chim_y0, eave]) chamfered_box([chim_w, D - chim_y0, chim_top - eave], chamfer);
@@ -267,12 +288,21 @@ module chimney() {
     }
 }
 
+// hotel: rib across the inside of the lid's front wall. It stands up once the lid
+// is open, just past the front of a phone_t phone. Square face toward the phone.
+module lip_rib() {
+    hull() {
+        translate([lid_x0, D - wall - e, rib_z]) cube([lid_x1 - lid_x0, e, rib_base]);
+        translate([lid_x0, D - wall - lip_h, rib_z]) cube([lid_x1 - lid_x0, e, lip_w]);
+    }
+}
+
 module lid() {
     difference() {
         union() {
             intersection() {
                 envelope();
-                union() { intersection() { shell(); lid_region(); } lid_knuckle(); lid_pin(); }
+                union() { intersection() { shell(); lid_region(); } lid_knuckle(); lid_pin(); if (rib) lip_rib(); }
             }
             chimney();
         }
@@ -286,10 +316,11 @@ module lid_open() { translate([0, ay, az]) rotate([-90, 0, 0]) translate([0, -ay
 // ---------- phone ghost ----------
 
 module phone_ghost(t = phone_t) {
-    %translate([-20, phone_by, wall]) rotate([lean, 0, 0]) cube([W + 40, t, 70]);
+    %translate([-20, phone_by, wall]) rotate([lean, 0, 0]) cube([W + 40, t, max(70, 2 * H)]);
     // the stop is the lid's roof edge at the eave (overlap included), once folded open
-    lip_y = ay + (eave + gap / 2 - az);
-    lip_top = az + ay - (seam_y(eave) - overlap / cos(lean));
+    // (hotel: the rib)
+    lip_y = ay + ((rib ? rib_z : eave + gap / 2) - az);
+    lip_top = rib ? wall + lip_h : az + ay - (seam_y(eave) - overlap / cos(lean));
     echo(str("lean ", lean, " deg; phone front corner y=", phone_by + t * cos(lean), " z=", wall + t * sin(lean),
              "; lip at y=", lip_y, " top z=", lip_top));
 }
