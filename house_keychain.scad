@@ -29,6 +29,7 @@ pip_clr = 0.35;     // pin-to-hole and knuckle-to-knuckle gap; raise if it print
 clr = 0.3;          // moving clearance elsewhere
 gap = 0.25;         // seam between body and lid
 knuckle_w = 6;      // width of each outer (body) knuckle
+open_stop = true;   // the lid stops just past flat instead of swinging on round
 
 /* [Split] */
 roof_split = 13.0;  // seam crosses the roof peak here (the phone leans on this edge)
@@ -210,8 +211,7 @@ module snap_slots(r = bump_r + 0.1) {
 module body_knuckles() {
     for (x = [[0, knuckle_w], [W - knuckle_w, W]]) {
         along_axis(x[0], x[1], hinge_r);
-        translate([x[0], floor_end - 1, 0]) cube([x[1] - x[0], ay - floor_end + 1, az]);
-    }
+        translate([x[0], floor_end - 1, 0]) cube([x[1] - x[0], ay - floor_end + 1, az]);    }
 }
 
 // through-window with a cross muntin: ws square, bottom at wz, cut along X
@@ -231,6 +231,19 @@ module side_window(x) {  // centered on the closed house
 
 module body() {
     intersection() { envelope(); body_raw(); }
+    if (open_stop) difference() { open_stops(); pin_holes(); }
+}
+
+// open stops: fill in under the front of each body knuckle. Past flat, the lid's
+// front wall butts into them (clr away when printed). Their bottom front edge
+// gets a smaller chamfer than the house's so the wall still meets them.
+stop_ch = 0.4;
+module open_stops() {
+    intersection() {
+        union() { envelope(); translate([chamfer, -1, 0]) cube([W - 2 * chamfer, D + 2, H]); }
+        for (x = [[0, knuckle_w], [W - knuckle_w, W]]) translate([x[0], 0, 0]) rotate([90, 0, 90])
+            linear_extrude(x[1] - x[0]) polygon([[ay - e, 0], [D - stop_ch, 0], [D, stop_ch], [D, az], [ay - e, az]]);
+    }
 }
 
 module body_raw() {

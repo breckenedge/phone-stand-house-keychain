@@ -48,6 +48,9 @@ stable too.
 ## Tuning
 
 - `pip_clr`: hinge gap, 0.35 mm for PETG. Raise to 0.4 if the hinge prints fused. Lower it (0.3 suits PLA) if it's floppy.
+- `open_stop`: blocks under the front of the outer hinge knuckles stop the lid about 10° past flat, instead of
+  letting it swing all the way round. Printed, they sit `clr` (0.3 mm) from the lid's front wall, and that gap
+  is why it stops just past 90° rather than exactly at it.
 - `snap`: how firmly the lid clicks shut (how far the roof bumps overlap the lid's edge). 0.35 mm for PETG. Use 0.3 for PLA: it gives a good click in PLA but was too soft in PETG.
   The part that flexes is the body's roof, which prints upright, so it bends
   along its layers rather than across them.
