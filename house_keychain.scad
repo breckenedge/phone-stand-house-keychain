@@ -40,6 +40,7 @@ fit = 0.1;          // gap under the overlapping edge
 under_t = 1.2;      // body roof thickness under the overlap (thickened inward)
 snap = 0.35;        // how far the bumps overlap the lid's edge; more = firmer
 bump_dx = 5;        // bump distance from the roof peak, on each slope
+snap_ridge = 4;     // bumps stretched into ridges this long (along the slope); 0 = round bumps
 
 /* [Phone] */
 phone_t = 12;       // thickest phone (incl. case) the stand fits; sets the eave height
@@ -75,6 +76,7 @@ roof_k = (H - eave) / (W / 2);       // roof slope
 roof_a = atan(roof_k);
 recess = lip_t + fit;                // depth of the body roof's recess
 bump_r = fit + snap;
+assert(bump_dx - snap_ridge / 2 > 1, "snap_ridge too long: the ridges would cross the roof peak");
 function seam_y(z) = phone_by - (z - wall) * tan(lean);
 function bump_pos(x) = let (z = H - abs(x - W / 2) * roof_k - recess / cos(roof_a))
     [x, seam_y(z) - overlap / 2 / cos(lean), z];
@@ -174,7 +176,9 @@ module roof_underlay() {
 }
 
 module snap_bumps(r = bump_r) {
-    for (x = [W / 2 - bump_dx, W / 2 + bump_dx]) translate(bump_pos(x)) sphere(r = r, $fn = 24);
+    // a ridge runs along the seam edge; bump_pos is linear along each slope, so the hull is straight
+    for (s = [-1, 1]) hull() for (d = [-snap_ridge / 2, snap_ridge / 2])
+        translate(bump_pos(W / 2 + s * (bump_dx + d))) sphere(r = r, $fn = 24);
 }
 
 module body_knuckles() {

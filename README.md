@@ -38,6 +38,8 @@ with lighter phones, but it can tip backward.
 - `overlap`, `lip_t`, `fit`: how far the lid's roof edge laps over the body's roof,
   how thick that edge is, and the gap under it. `under_t` thickens the body roof
   under the overlap. `bump_dx` sets how far the bumps sit from the peak.
+- `snap_ridge`: stretches each bump into a ridge this long along the roof slope (4 mm by default), for a firmer
+  click in PETG. Set it to 0 for the round bumps, which click well in PLA with `snap` 0.3.
 - `phone_t`: the thickest phone, case included, that the stand fits (12 mm by default). The eave
   height is calculated from it: thicker phones mean higher walls and a flatter roof. Anything over
   about 16 mm is rejected with an error. When run, the `open` view echoes the lean angle and where the lip is.
