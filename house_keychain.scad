@@ -39,10 +39,9 @@ overlap = 3.0;      // how far the lid's roof edge laps over the body's roof
 lip_t = 0.8;        // thickness of the lid's overlapping edge
 fit = 0.1;          // gap under the overlapping edge
 under_t = 1.2;      // body roof thickness under the overlap (thickened inward)
-snap = 0.35;        // how far the bumps overlap the lid's edge; more = firmer
-bump_dx = 5;        // bump distance from the roof peak, on each slope
+snap = 0.35;        // how far the lid's ridges reach into the body's roof; more = firmer
+bump_dx = 5;        // ridge distance from the roof peak, on each slope
 snap_ridge = 4;     // bumps stretched into ridges this long (along the slope); 0 = round bumps
-snap_through = true; // slots cut right through the lid's edge (a blind slot leaves a skin too thin to print cleanly)
 
 /* [Phone] */
 phone_t = 12;       // thickest phone (incl. case) the stand fits; sets the eave height
@@ -85,7 +84,7 @@ lean = atan((phone_by - roof_split) / (H - wall));
 eave = rib ? H - roof_h : phone_by + phone_t * cos(lean) + phone_fit - ay + az - gap / 2;
 assert(eave < H - 5, str("phone_t too thick: eave ", eave, " leaves too little roof"));
 echo(str("eave ", eave, ", roof pitch ", atan((H - eave) / (W / 2)), " deg"));
-// roof snap: bumps sit on the body's recessed roof surface, under the lid's edge
+// roof snap: ridges under the lid's edge click into pockets in the body's recessed roof
 roof_k = (H - eave) / (W / 2);       // roof slope
 roof_a = atan(roof_k);
 recess = lip_t + fit;                // depth of the body roof's recess
@@ -198,15 +197,10 @@ module roof_underlay() {
 }
 
 module snap_bumps(r = bump_r) {
-    // a ridge runs along the seam edge; bump_pos is linear along each slope, so the hull is straight
+    // a ridge runs along the seam edge; bump_pos is linear along each slope, so the hull is straight.
+    // Centred on the lid edge's underside (fit above the body's roof), so it reaches snap into the body.
     for (s = [-1, 1]) hull() for (d = [-snap_ridge / 2, snap_ridge / 2])
-        translate(bump_pos(W / 2 + s * (bump_dx + d))) sphere(r = r, $fn = 24);
-}
-
-// the lid's slots: the ridges' shape pushed out along the roof's normal, through the edge
-module snap_slots(r = bump_r + 0.1) {
-    for (s = [-1, 1]) hull() for (d = [-snap_ridge / 2, snap_ridge / 2], t = [0, recess + 1])
-        translate(bump_pos(W / 2 + s * (bump_dx + d)) + t * [s * sin(roof_a), 0, cos(roof_a)]) sphere(r = r, $fn = 24);
+        translate(bump_pos(W / 2 + s * (bump_dx + d)) + fit * [s * sin(roof_a), 0, cos(roof_a)]) sphere(r = r, $fn = 24);
 }
 
 module body_knuckles() {
@@ -253,9 +247,9 @@ module body_raw() {
             difference() { shell(); body_cuts(); }
             body_knuckles();
             roof_underlay();
-            snap_bumps();
         }
         pin_holes();
+        snap_bumps(bump_r + 0.1);  // pockets in the roof under the lid's edge, for its ridges
         if (details) { side_window(0); side_window(W - wall); back_details(); }
     }
 }
@@ -317,19 +311,12 @@ module lip_rib() {
 }
 
 module lid() {
-    difference() {
-        union() {
-            difference() {
-                intersection() {
-                    envelope();
-                    union() { intersection() { shell(); lid_region(); } lid_knuckle(); lid_pin(); if (rib) lip_rib(); }
-                }
-                if (snap_through) snap_slots();  // not through the chimney, if it sits over one
-            }
-            chimney();
-        }
-        snap_bumps(bump_r + 0.1);  // dimples under the overlapping edge
+    intersection() {
+        envelope();
+        union() { intersection() { shell(); lid_region(); } lid_knuckle(); lid_pin(); if (rib) lip_rib(); }
     }
+    chimney();
+    snap_bumps();  // ridges under the overlapping edge
 }
 
 // lid folded flat forward, rotated about the hinge axis

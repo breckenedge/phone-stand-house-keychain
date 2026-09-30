@@ -2,8 +2,8 @@
 
 A 1" × 1" × 0.75" (25.4 × 25.4 × 19 mm) house keychain. The front half swings
 down on a print-in-place hinge and turns into a phone stand. The lid's roof
-edge overlaps the back half's roof like a shingle and snaps shut over two small
-bumps.
+edge overlaps the back half's roof like a shingle and snaps shut: two small ridges under
+its edge click into pockets in the back half's roof.
 
 ## Files
 
@@ -51,17 +51,14 @@ stable too.
 - `open_stop`: blocks under the front of the outer hinge knuckles stop the lid about 10° past flat, instead of
   letting it swing all the way round. Printed, they sit `clr` (0.3 mm) from the lid's front wall, and that gap
   is why it stops just past 90° rather than exactly at it.
-- `snap`: how firmly the lid clicks shut (how far the roof bumps overlap the lid's edge). 0.35 mm for PETG. Use 0.3 for PLA: it gives a good click in PLA but was too soft in PETG.
-  The part that flexes is the body's roof, which prints upright, so it bends
-  along its layers rather than across them.
+- `snap`: how firmly the lid clicks shut (how far the lid's ridges reach into the body's roof). 0.35 mm for PETG. Use 0.3 for PLA: it gives a good click in PLA but was too soft in PETG.
+  The part that flexes is mostly the lid's thin roof edge. The ridges print as horizontal ribs on it, so
+  their height comes from the XY accuracy of the printer, not from the layer height.
 - `overlap`, `lip_t`, `fit`: how far the lid's roof edge laps over the body's roof,
   how thick that edge is, and the gap under it. `under_t` thickens the body roof
-  under the overlap. `bump_dx` sets how far the bumps sit from the peak.
-- `snap_ridge`: stretches each bump into a ridge this long along the roof slope (4 mm by default), for a firmer
-  click in PETG. Set it to 0 for the round bumps, which click well in PLA with `snap` 0.3.
-- `snap_through`: the ridges click into slots cut right through the lid's roof edge (on by default), which
-  show as two small vents on the roof. When it's off, the slots are blind, but the 0.35 mm skin left over them
-  prints poorly: it deforms and curls up into the nozzle.
+  under the overlap. `bump_dx` sets how far the ridges sit from the peak.
+- `snap_ridge`: how long each ridge is along the roof slope (4 mm by default), for a firmer
+  click in PETG. Set it to 0 for round bumps.
 - `phone_t`: the thickest phone, case included, that the stand fits (12 mm by default). The eave
   height is calculated from it: thicker phones mean higher walls and a flatter roof. Anything over
   about 16 mm is rejected with an error. When run, the `open` view echoes the lean angle and where the lip is.
