@@ -42,7 +42,7 @@ with lighter phones, but it can tip backward.
   height is calculated from it: thicker phones mean higher walls and a flatter roof. Anything over
   about 16 mm is rejected with an error. When run, the `open` view echoes the lean angle and where the lip is.
 - `roof_split`: a higher value gives a more upright phone but a smaller lip.
-- `keyring_d`: keyring hole size, 4 mm by default and up to about 5 mm. The hole runs sideways through the top of the
+- `keyring_d`: keyring hole size, 3 mm by default and up to about 5 mm. The hole runs sideways through the top of the
   chimney, so the ring loops over the chimney when closed and lies flat past the end of the lid
   when it's open. The chimney gets deeper and taller to fit bigger holes, and rises above the 1"
   peak from about 3 mm up. `chim_rim` sets the material around the hole and `chim_cap` the material above it.

@@ -46,7 +46,7 @@ phone_t = 12;       // thickest phone (incl. case) the stand fits; sets the eave
 phone_fit = 0.1;    // extra room between that phone and the lip
 
 /* [Features] */
-keyring_d = 4;      // keyring hole; the chimney grows (deeper, taller) to fit it
+keyring_d = 3;      // keyring hole; the chimney grows (deeper, taller) to fit it
 chim_rim = 0.8;     // chimney material beside the keyring hole and between it and the roof
 chim_cap = 1.6;     // chimney material above the keyring hole
 
