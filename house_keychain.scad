@@ -192,8 +192,17 @@ module body_cuts() {
 module roof_underlay() {
     difference() {
         intersection() {
-            prism(0, D) difference() { offset(delta = -recess) pent2d(); offset(delta = -recess - under_t) pent2d(); }
-            translate([-1, -1, eave]) cube([W + 2, D + 2, H]);
+            union() {
+                intersection() {
+                    prism(0, D) difference() { offset(delta = -recess) pent2d(); offset(delta = -recess - under_t) pent2d(); }
+                    translate([-1, -1, eave]) cube([W + 2, D + 2, H]);
+                }
+                // below the eave, a 45° taper down into the side wall's inner face instead of a
+                // flat shelf; xs is where the thickening's underside crosses the eave
+                xs = (recess + under_t) / sin(roof_a);
+                prism(0, D) for (m = [0, 1]) translate([m * W, 0]) mirror([m, 0])
+                    polygon([[wall - e, eave + e], [xs + e, eave + e], [wall - e, eave - (xs - wall)]]);
+            }
             phone_side(overlap + gap + 1);
         }
         phone_side(0);
