@@ -23,13 +23,13 @@ floor_t = 1.5;
 chamfer = 0.8;      // bevel on the outside edges so it doesn't snag in a pocket
 
 /* [Hinge] */
-hinge_r = 2.2;      // knuckle radius
+hinge_r = 3;        // knuckle radius
 pin_r = 1.0;        // print-in-place pin radius
 pip_clr = 0.35;     // pin-to-hole and knuckle-to-knuckle gap; raise if it prints fused
 clr = 0.3;          // moving clearance elsewhere
 gap = 0.25;         // seam between body and lid
 knuckle_w = 6;      // width of each outer (body) knuckle
-open_stop = true;   // the lid stops just past flat instead of swinging on round
+open_stop = true;   // square foot on the lid's knuckle: it butts into the end of the body's floor just past flat
 
 /* [Split] */
 roof_split = 13.0;  // seam crosses the roof peak here (the phone leans on this edge)
@@ -77,7 +77,11 @@ pin_cap = 1.0;                       // closed outer end of each body knuckle
 // phone's back face: bottom edge just past the hinge knuckles, leaning on the ridge
 // (hotel: further out on the open lid, wherever phone_lean puts it)
 rib = phone_lean > 0;
-phone_by = rib ? roof_split + (H - wall) * tan(phone_lean) : ay + hinge_r + 0.5;
+// house: far enough out that the leaning phone's back clears the knuckle by about 0.2 mm
+// (worked out at the lean of a first guess; the real lean is a touch steeper, costing ~0.03 mm)
+lean0 = atan((ay + hinge_r + 0.5 - roof_split) / (H - wall));
+phone_by = rib ? roof_split + (H - wall) * tan(phone_lean)
+               : ay + ((hinge_r - wall) * sin(lean0) + hinge_r + 0.2) / cos(lean0);
 lean = atan((phone_by - roof_split) / (H - wall));
 // wall height: puts the lip (the lid's roof edge at the eave, once open) just past
 // the front of a phone_t phone (hotel: the rib is the lip, so the eave is free)
@@ -226,19 +230,6 @@ module side_window(x) {  // centered on the closed house
 
 module body() {
     intersection() { envelope(); body_raw(); }
-    if (open_stop) difference() { open_stops(); pin_holes(); }
-}
-
-// open stops: fill in under the front of each body knuckle. Past flat, the lid's
-// front wall butts into them (clr away when printed). Their bottom front edge
-// gets a smaller chamfer than the house's so the wall still meets them.
-stop_ch = 0.4;
-module open_stops() {
-    intersection() {
-        union() { envelope(); translate([chamfer, -1, 0]) cube([W - 2 * chamfer, D + 2, H]); }
-        for (x = [[0, knuckle_w], [W - knuckle_w, W]]) translate([x[0], 0, 0]) rotate([90, 0, 90])
-            linear_extrude(x[1] - x[0]) polygon([[ay - e, 0], [D - stop_ch, 0], [D, stop_ch], [D, az], [ay - e, az]]);
-    }
 }
 
 module body_raw() {
@@ -274,7 +265,13 @@ module lid_region() {
 }
 
 // the knuckle overlaps the front wall, which runs down to the axis in this span
-module lid_knuckle() { along_axis(mid_x0, mid_x1, hinge_r); }
+module lid_knuckle() {
+    along_axis(mid_x0, mid_x1, hinge_r);
+    // open stop: the knuckle's front-bottom corner squared off, so the house's bottom is flat.
+    // Folded open, that corner is behind and under the axis, and past flat its flat face
+    // (the bottom, when closed) runs head-on into the end of the body's floor.
+    if (open_stop) translate([mid_x0, ay, 0]) cube([mid_x1 - mid_x0, hinge_r, az]);
+}
 
 // chimney on the lid's roof, flush with the lid's front face (which lies on the
 // bed when printing). Its straight back face may reach back over the lid's

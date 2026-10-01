@@ -48,9 +48,10 @@ stable too.
 ## Tuning
 
 - `pip_clr`: hinge gap, 0.35 mm for PETG. Raise to 0.4 if the hinge prints fused. Lower it (0.3 suits PLA) if it's floppy.
-- `open_stop`: blocks under the front of the outer hinge knuckles stop the lid about 10° past flat, instead of
-  letting it swing all the way round. Printed, they sit `clr` (0.3 mm) from the lid's front wall, and that gap
-  is why it stops just past 90° rather than exactly at it.
+- `open_stop`: the middle hinge knuckle has a square foot, which makes the house's bottom flat. Opened past flat, the
+  foot runs head-on into the end of the body's floor, so the lid stops at about 99° (about 105° with the hinge's play
+  taken up). It can't stop at exactly 90°: the foot has to print `clr` (0.3 mm) clear of the floor.
+- `hinge_r`: knuckle radius, 3 mm. A bigger hinge gives a firmer stop, but it also raises the eave, which flattens the roof.
 - `snap`: how firmly the lid clicks shut (how far the lid's ridges reach into the body's roof). 0.35 mm for PETG. Use 0.3 for PLA: it gives a good click in PLA but was too soft in PETG.
   The part that flexes is mostly the lid's thin roof edge. The ridges print as horizontal ribs on it, so
   their height comes from the XY accuracy of the printer, not from the layer height.
