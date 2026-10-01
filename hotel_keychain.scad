@@ -10,5 +10,4 @@ include <house_keychain.scad>
 part = "open"; // [closed, open, print, body, lid]
 H = 63.5;           // height to roof peak (2.5")
 phone_lean = 20;    // degrees
-floors = 4;
-details = true;     // keeps its door and windows (the house has none by default)
+floors = 4;         // window rows, if details is turned on
